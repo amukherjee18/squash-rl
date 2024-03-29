@@ -11,8 +11,10 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pong")
 
 # Define colors
+BACKGROUND_COLOR = (236, 195, 151)  # Color corresponding to #ecc397
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
 
 # Define constants
 PADDLE_WIDTH = 10
@@ -21,6 +23,7 @@ BALL_SIZE = 20
 WALL_WIDTH = 10
 PADDLE_SPEED = 5
 BALL_SPEED = 5
+BOX_SIDE_LENGTH = SCREEN_WIDTH / 5
 
 # Define fonts
 font = pygame.font.Font(None, 36)
@@ -35,13 +38,22 @@ ball_y = SCREEN_HEIGHT // 2
 ball_dx = BALL_SPEED * random.choice([-1, 1])
 ball_dy = BALL_SPEED * random.choice([-1, 1])
 
+
 # Function to draw paddles, ball, and wall
 def draw_objects():
-    screen.fill(BLACK)
-    pygame.draw.rect(screen, WHITE, (0, player_y, PADDLE_WIDTH, PADDLE_HEIGHT))  # Player paddle
-    pygame.draw.rect(screen, WHITE, (0, ai_opponent_y, PADDLE_WIDTH, PADDLE_HEIGHT))  # Left AI opponent paddle
-    pygame.draw.rect(screen, WHITE, ((SCREEN_WIDTH - WALL_WIDTH) // 2, 0, WALL_WIDTH, SCREEN_HEIGHT))  # Center wall
-    pygame.draw.ellipse(screen, WHITE, (ball_x - BALL_SIZE // 2, ball_y - BALL_SIZE // 2, BALL_SIZE, BALL_SIZE))
+    screen.fill(BACKGROUND_COLOR)  # Fill background color
+    pygame.draw.rect(screen, BLACK, (0, player_y, PADDLE_WIDTH, PADDLE_HEIGHT))  # Player paddle
+    pygame.draw.rect(screen, BLACK, (0, ai_opponent_y, PADDLE_WIDTH, PADDLE_HEIGHT))  # Left AI opponent paddle
+    pygame.draw.rect(screen, RED, ((SCREEN_WIDTH - WALL_WIDTH) // 2, 0, WALL_WIDTH, SCREEN_HEIGHT))  # Center Line
+    pygame.draw.rect(screen, RED, (0, (SCREEN_HEIGHT - WALL_WIDTH) // 2, SCREEN_WIDTH // 2, WALL_WIDTH))  # Middle Line
+
+
+    pygame.draw.rect(screen, RED, ((SCREEN_WIDTH - WALL_WIDTH) // 2 - BOX_SIDE_LENGTH, SCREEN_HEIGHT - BOX_SIDE_LENGTH, WALL_WIDTH, BOX_SIDE_LENGTH))
+    pygame.draw.rect(screen, RED, ((SCREEN_WIDTH - WALL_WIDTH) // 2 - BOX_SIDE_LENGTH, SCREEN_HEIGHT - BOX_SIDE_LENGTH, BOX_SIDE_LENGTH, WALL_WIDTH))
+    pygame.draw.rect(screen, RED, ((SCREEN_WIDTH - WALL_WIDTH) // 2 - BOX_SIDE_LENGTH, 0, WALL_WIDTH, BOX_SIDE_LENGTH))
+    pygame.draw.rect(screen, RED, ((SCREEN_WIDTH - WALL_WIDTH) // 2 - BOX_SIDE_LENGTH, BOX_SIDE_LENGTH, BOX_SIDE_LENGTH, WALL_WIDTH))
+
+    pygame.draw.ellipse(screen, BLACK, (ball_x - BALL_SIZE // 2, ball_y - BALL_SIZE // 2, BALL_SIZE, BALL_SIZE))
 
 # Function to handle collisions
 def check_collision():
@@ -116,4 +128,5 @@ while running:
     pygame.display.flip()
     clock.tick(60)
 
-# Quit Py
+# Quit Pygame
+pygame.quit()
