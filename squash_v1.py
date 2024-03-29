@@ -30,7 +30,7 @@ player_score = 0
 opponent_score = 0
 player_y = (SCREEN_HEIGHT - PADDLE_HEIGHT) // 2
 opponent_y = (SCREEN_HEIGHT - PADDLE_HEIGHT) // 2
-ball_x = SCREEN_WIDTH // 2
+ball_x = SCREEN_WIDTH // 2 - 20
 ball_y = SCREEN_HEIGHT // 2
 ball_dx = BALL_SPEED * random.choice([-1, 1])
 ball_dy = BALL_SPEED * random.choice([-1, 1])
@@ -71,7 +71,7 @@ def check_collision():
 # Function to reset the ball
 def reset_ball():
     global ball_x, ball_y, ball_dx, ball_dy
-    ball_x = SCREEN_WIDTH // 2
+    ball_x = SCREEN_WIDTH // 2 - 20
     ball_y = SCREEN_HEIGHT // 2
     ball_dx = BALL_SPEED * random.choice([-1, 1])
     ball_dy = BALL_SPEED * random.choice([-1, 1])
