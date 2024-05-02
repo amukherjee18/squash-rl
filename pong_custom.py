@@ -123,6 +123,8 @@ class CustomPongEnv(gym.Env):
     def _is_done(self):
         return False
 
+
+    # possible there is some issue with ball_position in rendering (w borders and stuff) vs ball_position that agent gets 
     def _get_obs(self):
         obs = np.zeros((self.side_wall_length, self.front_wall_length, 3), dtype=np.uint8)
         obs[self.ball_position[0]-self.ball_size:self.ball_position[0]+self.ball_size, self.ball_position[1]-self.ball_size:self.ball_position[1]+self.ball_size] = 255
