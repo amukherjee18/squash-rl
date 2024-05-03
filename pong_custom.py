@@ -32,6 +32,8 @@ class CustomPongEnv(gym.Env):
         self.paddle_height = 10
         self.score = 0
 
+        self.done = False
+
     def step(self, action):
         self._take_action(action)
         self._update_ball()
@@ -114,6 +116,7 @@ class CustomPongEnv(gym.Env):
             self.score += 1
             self.ball_position = [105, 80]
             self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
+            self.done = True
 
     def _get_reward(self):
         if self.ball_position[0] > self.side_wall_length + self.edge_width:
@@ -121,7 +124,7 @@ class CustomPongEnv(gym.Env):
         return 0
 
     def _is_done(self):
-        return False
+        return self.done
 
 
     # possible there is some issue with ball_position in rendering (w borders and stuff) vs ball_position that agent gets 
