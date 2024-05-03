@@ -68,7 +68,7 @@ class CustomPongEnv(gym.Env):
 
         # T
         screen[self.front_wall_to_t: self.front_wall_to_t + self.edge_width, 0: self.front_wall_length + 2*self.edge_width] = [255,255,255]
-        screen[self.front_wall_to_t:self.side_wall_length + 2*self.edge_width , int((self.front_wall_length-self.edge_width)/2):int((self.front_wall_length+self.edge_width)/2)] = [255,255,255]
+        screen[self.front_wall_to_t:self.side_wall_length + 2*self.edge_width , int((self.front_wall_length + 2*self.edge_width - self.edge_width)/2):int((self.front_wall_length+ 2*self.edge_width + self.edge_width)/2)] = [255,255,255]
 
         # Boxes
         screen[self.front_wall_to_t + self.edge_width + self.box_side_length: self.front_wall_to_t + 2*self.edge_width + self.box_side_length, self.edge_width: self.edge_width + self.box_side_length] = [255,255,255]
@@ -124,6 +124,7 @@ class CustomPongEnv(gym.Env):
         return 0
 
     def _is_done(self):
+        # return False
         return self.done
 
 
