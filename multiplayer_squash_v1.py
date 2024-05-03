@@ -36,6 +36,8 @@ class CustomPongEnv(gym.Env):
 
         self.done = False
 
+        self.turn = False # False means ai paddle turn
+
     def step(self, action):
         self._take_action(action)
         self._update_ball()
@@ -52,7 +54,10 @@ class CustomPongEnv(gym.Env):
         self.paddle_position = int(1*self.front_wall_length / 4)
         self.ai_paddle_position = int(3*self.front_wall_length / 4)
 
-        self.score = 0
+        self.turn = False # False means ai paddle turn
+
+
+        # self.score = 0
         return self._get_obs()
 
     def render(self, mode='human', close=False):
@@ -119,22 +124,23 @@ class CustomPongEnv(gym.Env):
         if self.ball_position[1] <= self.edge_width or self.ball_position[1] >= self.front_wall_length + self.edge_width:
             self.ball_velocity[1] = -self.ball_velocity[1]
 
-        # Check for collision with player paddle
-        if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
-            self.ball_velocity[0] = -self.ball_velocity[0]
-
-        # Check for collision with ai paddle
-        if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.ai_paddle_position and self.ball_position[1] <= self.ai_paddle_position + self.paddle_width:
-            self.ball_velocity[0] = -self.ball_velocity[0]
-
-
-
+        if self.turn:
+            # Check for collision with player paddle
+            if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
+                self.ball_velocity[0] = -self.ball_velocity[0]
+                self.turn = False
+        else:
+            # Check for collision with ai paddle
+            if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.ai_paddle_position and self.ball_position[1] <= self.ai_paddle_position + self.paddle_width:
+                self.ball_velocity[0] = -self.ball_velocity[0]
+                self.turn = True
+                
         # Check for scoring
         if self.ball_position[0] >= self.side_wall_length + 2*self.edge_width:
             self.score += 1
             self.ball_position = [105, 80]
             self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
-            # self.done = True
+            self.done = True
 
     def _get_reward(self):
         if self.ball_position[0] > self.side_wall_length + self.edge_width:
@@ -171,7 +177,6 @@ def test_pong_environment(episodes=10):
             # You can print observations, rewards, and info if you want to see details
             # print(f"Observation: {obs}")
             # print(f"Reward: {reward}, Info: {info}")
-
         print(f"Episode {episode + 1}: Score = {info['score']}")
 
     env.close()
