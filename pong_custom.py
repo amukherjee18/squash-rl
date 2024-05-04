@@ -116,7 +116,7 @@ class CustomPongEnv(gym.Env):
             self.score += 1
             self.ball_position = [105, 80]
             self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
-            self.done = True
+            # self.done = True
 
     def _get_reward(self):
         if self.ball_position[0] > self.side_wall_length + self.edge_width:
