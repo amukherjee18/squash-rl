@@ -1,7 +1,8 @@
 #!/bin/bash -l
 #SBATCH -J train_ppo
 #SBATCH --gres=gpu:1
-#SBATCH -t 24:00:00
+#SBATCH --partition=mig
+#SBATCH -t 12:00:00
 #SBATCH --mem=40GB
 #SBATCH --output=slurm/%x-%j.out
 
