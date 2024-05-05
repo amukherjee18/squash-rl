@@ -58,7 +58,7 @@ class CustomPongEnv(gym.Env):
         super(CustomPongEnv, self).__init__()
 
         # Court measurements
-        self.scale = 20
+        self.scale = 10
         self.front_wall_length = 21 * self.scale
         self.side_wall_length = 32 * self.scale
         self.front_wall_to_t = int(17.85 * self.scale)
@@ -73,8 +73,8 @@ class CustomPongEnv(gym.Env):
 
         # Game settings
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
-        self.ball_velocity = [4, np.random.choice([-1, 1])*2]
-        self.ball_size = 10
+        self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
+        self.ball_size = self.scale
         self.paddle_position = int(self.front_wall_length / 2)
         self.paddle_width = 80
         self.paddle_height = 10
@@ -94,7 +94,7 @@ class CustomPongEnv(gym.Env):
 
     def reset(self):
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
-        self.ball_velocity = [4, np.random.choice([-1, 1])*2]
+        self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
         self.ball_size = 10
         self.paddle_position = int(self.front_wall_length / 2)
         self.paddle_width = 80
@@ -173,7 +173,9 @@ class CustomPongEnv(gym.Env):
         if self.ball_position[0] >= self.side_wall_length + 2*self.edge_width:
             self.score += 1
             self.ball_position = [105, 80]
-            self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
+            self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
+
+            # self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
             self.done = True
 
     def _get_reward(self):
@@ -202,7 +204,7 @@ def test_pong_environment(episodes=10):
     action_dim = env.action_space.n
 
     policy_net = PolicyNetwork(state_dim, action_dim)
-    # checkpoint = torch.load('ppo_step101', map_location=torch.device('cpu'))
+    checkpoint = torch.load('ppo_step131', map_location=torch.device('cpu'))
     # policy_net.load_state_dict(checkpoint['policy network'])
     # print(policy_net)
     score = 0
