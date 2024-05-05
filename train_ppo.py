@@ -28,7 +28,7 @@ def compute_advantages(next_value, rewards, masks, values, gamma=0.99):
 def evaluate_policy(policy, env_name, seed=42):
     env_test = CustomPongEnv()
     # env_test.seed(seed)
-    state, done, total_reward = env_test.reset(), False, 0
+    state, done, total_reward = env_test.reset()[0], False, 0
     state = torch.FloatTensor(state)
     state = rgb_to_grayscale(state).flatten()
 
@@ -174,7 +174,7 @@ def rgb_to_grayscale(rgb_tensor):
 
     return torch.FloatTensor(grayscale_tensor)
 
-def train(env_name='CartPole-v1', num_steps=1000, mini_batch_size=8, ppo_epochs=4, threshold=400):
+def train(env_name='CartPole-v1', num_steps=2000, mini_batch_size=8, ppo_epochs=4, threshold=400):
     env = CustomPongEnv()
     state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
     print('Observation space: ', env.observation_space.shape)
@@ -188,7 +188,7 @@ def train(env_name='CartPole-v1', num_steps=1000, mini_batch_size=8, ppo_epochs=
     value_net.to(device)
     optimizer = optim.Adam(list(policy_net.parameters()) + list(value_net.parameters()), lr=3e-3)
 
-    state = env.reset()
+    state, _ = env.reset()
     early_stop = False
     reward_list = []
 
@@ -202,8 +202,9 @@ def train(env_name='CartPole-v1', num_steps=1000, mini_batch_size=8, ppo_epochs=
         entropy = 0
 
         # Collect samples under the current policy
-        for _ in tqdm(range(2048), total=2048):
-            rgb_state = torch.FloatTensor(state).unsqueeze(0)
+        for _ in tqdm(range(4096), total=4096):
+            rgb_state = torch.FloatTensor(state)
+            rgb_state = rgb_state.unsqueeze(0)
             # print('RGB State shape: ', rgb_state.shape)
             state_unflattened = rgb_to_grayscale(rgb_state)
             # print('Grayscale state shape: ', state_unflattened.shape)
@@ -226,7 +227,7 @@ def train(env_name='CartPole-v1', num_steps=1000, mini_batch_size=8, ppo_epochs=
 
             state = next_state
             if done:
-                state = env.reset()
+                state, _ = env.reset()
 
 
         next_state = torch.FloatTensor(next_state).unsqueeze(0)
@@ -253,15 +254,14 @@ def train(env_name='CartPole-v1', num_steps=1000, mini_batch_size=8, ppo_epochs=
         # run PPO update for policy and value networks
         ppo_update(policy_net, value_net, optimizer, ppo_epochs, mini_batch_size, states, actions, log_probs, returns, advantage)
         
-        if step % 10 == 1:
-            if step % 50 == 1:
-                checkpoint = {
-                    "step": step,
-                    "policy network": policy_net.state_dict(),
-                    "optimizer": optimizer.state_dict(),
-                    "value network": value_net.state_dict(),
-                }
-                torch.save(checkpoint, f'checkpoints/ppo_step{step}')
+        if step % 50 == 1:
+            checkpoint = {
+                "step": step,
+                "policy network": policy_net.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "value network": value_net.state_dict(),
+            }
+            torch.save(checkpoint, f'checkpoints_0505/ppo_step{step}')
             test_reward = np.mean([evaluate_policy(policy_net, env_name) for _ in tqdm(range(10), total=10)])
             print(f'Step: {step}\tReward: {test_reward}')
             reward_list.append(test_reward)
