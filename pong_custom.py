@@ -207,7 +207,9 @@ def test_pong_environment(episodes=10):
     action_dim = env.action_space.n
 
     policy_net = PolicyNetwork(state_dim, action_dim)
-    checkpoint = torch.load('ppo_step131', map_location=torch.device('cpu'))
+    # checkpoint = torch.load('ppo_step301', map_location=torch.device('cpu'))
+    checkpoint = torch.load('ppo_collisionreward_step201', map_location=torch.device('cpu'))
+    
     # policy_net.load_state_dict(checkpoint['policy network'])
     # print(policy_net)
     score = 0

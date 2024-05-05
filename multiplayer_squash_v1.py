@@ -10,7 +10,7 @@ class CustomPongEnv(gym.Env):
         super(CustomPongEnv, self).__init__()
 
         # Court measurements
-        self.scale = 20
+        self.scale = 10
         self.front_wall_length = 21 * self.scale
         self.side_wall_length = 32 * self.scale
         self.front_wall_to_t = int(17.85 * self.scale)
@@ -25,7 +25,9 @@ class CustomPongEnv(gym.Env):
 
         # Game settings
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
-        self.ball_velocity = [4, 2]
+        # self.ball_velocity = [4, 2]
+        self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
+
         self.ball_size = 10
         self.paddle_position = int(1*self.front_wall_length / 4)
         self.ai_paddle_position = int(1*self.front_wall_length / 2)
@@ -40,7 +42,7 @@ class CustomPongEnv(gym.Env):
 
     def step(self, action):
         self._take_action(action)
-        self._update_ball()
+        self._update_ball(action)
 
         reward = self._get_reward()
         done = self._is_done()
@@ -50,12 +52,14 @@ class CustomPongEnv(gym.Env):
 
     def reset(self):
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
-        self.ball_velocity = [4, 2]
+        # self.ball_velocity = [4, 2]
+        self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
+
         self.paddle_position = int(1*self.front_wall_length / 4)
         self.ai_paddle_position = int(3*self.front_wall_length / 4)
 
         self.turn = False # False means ai paddle turn
-
+        self.done = False
 
         # self.score = 0
         return self._get_obs()
@@ -112,7 +116,7 @@ class CustomPongEnv(gym.Env):
             # self.ai_paddle_position = 0  # Stay
 
 
-    def _update_ball(self):
+    def _update_ball(self, action):
         self.ball_position[0] += self.ball_velocity[0]
         self.ball_position[1] += self.ball_velocity[1]
 
@@ -128,6 +132,10 @@ class CustomPongEnv(gym.Env):
             # Check for collision with player paddle
             if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
                 self.ball_velocity[0] = -self.ball_velocity[0]
+                if action == 1: # (paddle moving left)
+                    self.ball_velocity[1] -= 2*int(self.scale / 10)
+                elif action == 2: # (paddle moving right)
+                    self.ball_velocity[1] += 2*int(self.scale / 10)
                 self.turn = False
         else:
             # Check for collision with ai paddle
@@ -139,12 +147,20 @@ class CustomPongEnv(gym.Env):
         if self.ball_position[0] >= self.side_wall_length + 2*self.edge_width:
             self.score += 1
             self.ball_position = [105, 80]
-            self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
+            self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
             self.done = True
 
     def _get_reward(self):
-        if self.ball_position[0] > self.side_wall_length + self.edge_width:
+        if not self.turn and self.ball_position[0] >= self.side_wall_length + self.edge_width:
+            self.done = True
+            return 50
+        if self.turn and self.ball_position[0] > self.side_wall_length + self.edge_width:
+            self.done = True
             return -10
+        # Check for collision with the paddle
+        if self.turn and self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
+            return 5
+        
         return 0
 
     def _is_done(self):
@@ -160,24 +176,26 @@ class CustomPongEnv(gym.Env):
         return obs
 
 def test_pong_environment(episodes=10):
+    
     # Create the environment
     env = CustomPongEnv()
     for episode in range(episodes):
         done = False
-        score = 0
+        
+        reward_sum = 0
         obs = env.reset()
         while not done:
             # Random action
             action = env.action_space.sample()
             obs, reward, done, info = env.step(action)
-            score += reward
+            reward_sum += reward
             # Render the game
             env.render()
 
             # You can print observations, rewards, and info if you want to see details
             # print(f"Observation: {obs}")
             # print(f"Reward: {reward}, Info: {info}")
-        print(f"Episode {episode + 1}: Score = {info['score']}")
+        print(f"Episode {episode + 1}: Reward = {reward_sum}")
 
     env.close()
 
