@@ -181,6 +181,9 @@ class CustomPongEnv(gym.Env):
     def _get_reward(self):
         if self.ball_position[0] > self.side_wall_length + self.edge_width:
             return -10
+        # Check for collision with the paddle
+        if self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
+            return 5
         return 0
 
     def _is_done(self):
