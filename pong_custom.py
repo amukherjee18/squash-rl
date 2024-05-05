@@ -66,7 +66,7 @@ class CustomPongEnv(gym.Env):
         self.t_to_back_wall = self.side_wall_length - self.front_wall_to_t
 
         # Rendering measurements, colors
-        self.edge_width = int(0.5*self.scale)
+        self.edge_width = 2 #int(0.5*self.scale)
         
         self.action_space = spaces.Discrete(3)  # 0: stay, 1: up, 2: down
         self.observation_space = spaces.Box(low=0, high=255, shape=(self.side_wall_length, self.front_wall_length, 3), dtype=np.uint8)
