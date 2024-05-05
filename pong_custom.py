@@ -108,7 +108,7 @@ class CustomPongEnv(gym.Env):
         # self.paddle_position = int(self.front_wall_length / 2)
 
         # self.score = 0
-        return self._get_obs()
+        return self._get_obs(), []
 
     def render(self, mode='human', close=False):
         
@@ -213,7 +213,7 @@ def test_pong_environment(episodes=10):
         # breakpoint()
         done = False
         
-        obs = env.reset()
+        obs, _ = env.reset()
         while not done:
             # Random action
             # action = env.action_space.sample()
