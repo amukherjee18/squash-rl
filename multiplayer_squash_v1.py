@@ -198,17 +198,21 @@ class CustomPongEnv(gym.Env):
             self.done = True
 
     def _get_reward(self):
+        
         if not self.turn and self.ball_position[0] >= self.side_wall_length + self.edge_width:
             self.done = True
             return 50
         if self.turn and self.ball_position[0] > self.side_wall_length + self.edge_width:
             self.done = True
-            return -10
+            return -50
         # Check for collision with the paddle
         if self.turn and self.ball_position[0] >= self.edge_width + self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_position and self.ball_position[1] <= self.paddle_position + self.paddle_width:
-            return 5
+            return 20
+
         
-        return 0
+        val = -50*np.abs(self.ball_position[1] - (self.paddle_position + int(self.paddle_width / 2))) / self.front_wall_length
+        # breakpoint()
+        return val
 
     def _is_done(self):
         # return False
