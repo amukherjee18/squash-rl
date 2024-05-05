@@ -95,6 +95,7 @@ class CustomPongEnv(gym.Env):
     def reset(self):
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
         self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
+
         self.ball_size = 10
         self.paddle_position = int(self.front_wall_length / 2)
         self.paddle_width = 80
@@ -149,9 +150,9 @@ class CustomPongEnv(gym.Env):
 
     def _take_action(self, action):
         if action == 1 and self.paddle_position > 0:
-            self.paddle_position -= 2  # Move paddle left
+            self.paddle_position -= 4  # Move paddle left
         elif action == 2 and self.paddle_position < 160:
-            self.paddle_position += 2  # Move paddle right
+            self.paddle_position += 4  # Move paddle right
 
     def _update_ball(self):
         self.ball_position[0] += self.ball_velocity[0]
@@ -208,7 +209,7 @@ def test_pong_environment(episodes=10):
 
     policy_net = PolicyNetwork(state_dim, action_dim)
     # checkpoint = torch.load('ppo_step301', map_location=torch.device('cpu'))
-    checkpoint = torch.load('ppo_collisionreward_step201', map_location=torch.device('cpu'))
+    checkpoint = torch.load('ppo_collisionreward_step2501', map_location=torch.device('cpu'))
     
     # policy_net.load_state_dict(checkpoint['policy network'])
     # print(policy_net)
