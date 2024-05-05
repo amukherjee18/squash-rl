@@ -238,13 +238,13 @@ def test_pong_environment(episodes=10):
     # checkpoint = torch.load('ppo_step301', map_location=torch.device('cpu'))
     checkpoint = torch.load('ppo_multi_step2251', map_location=torch.device('cpu'))
     
-    # policy_net.load_state_dict(checkpoint['policy network'])
+    policy_net.load_state_dict(checkpoint['policy network'])
     # print(policy_net)
-    reward_sum = 0
     
     for episode in range(episodes):
         # breakpoint()
         done = False
+        reward_sum = 0
         
         obs, _ = env.reset()
         while not done:
