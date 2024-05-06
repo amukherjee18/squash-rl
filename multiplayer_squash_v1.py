@@ -57,7 +57,7 @@ class CustomPongEnv(gym.Env):
         super(CustomPongEnv, self).__init__()
 
         # Measurements
-        self.scale = 20
+        self.scale = 10
 
         # Court
         self.front_wall_length = 21 * self.scale
@@ -77,7 +77,7 @@ class CustomPongEnv(gym.Env):
         # Paddle
         self.paddle_center = int(self.front_wall_length / 2)
         self.ai_paddle_center = int(1*self.front_wall_length / 2)
-        self.paddle_halfwidth = int(self.front_wall_length / 12)
+        self.paddle_halfwidth = int(self.front_wall_length / 6)
         self.paddle_height = int(self.scale/2)
         self.paddle_velocity = 2
         self.paddle_border = 2
