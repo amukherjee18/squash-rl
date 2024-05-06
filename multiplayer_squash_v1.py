@@ -7,6 +7,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 
+from ray.rllib.env import EnvContext
+from ray.tune.registry import register_env
+# from multiplayer_squash_v1 import CustomPongEnv
+from ray.rllib.algorithms.ppo import PPO
+from ray.rllib.algorithms.dqn import DQN
+
+from gymnasium.wrappers import EnvCompatibility
+import numpy as np
+from ray.rllib.models.preprocessors import get_preprocessor, Preprocessor
+import gymnasium as gym
+from gymnasium import spaces
+import torch
+from tqdm import tqdm
+
+
+import ray
 
 def rgb_to_grayscale(rgb_tensor):
     # Convert RGB tensor to grayscale using weighted average
