@@ -188,10 +188,10 @@ class CustomPongEnv(gym.Env):
             # Check for collision with the paddle
             if self.ball_position[0] + self.ball_radius >= self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_center - self.paddle_halfwidth and self.ball_position[1] <= self.paddle_center + self.paddle_halfwidth:
                 self.ball_velocity[0] = -self.ball_velocity[0]
-                if action == 1: # (paddle moving left)
-                    self.ball_velocity[1] -= 2*int(self.scale / 10)
-                elif action == 2: # (paddle moving right)
-                    self.ball_velocity[1] += 2*int(self.scale / 10)
+                # if action == 1: # (paddle moving left)
+                #     self.ball_velocity[1] -= 2*int(self.scale / 10)
+                # elif action == 2: # (paddle moving right)
+                #     self.ball_velocity[1] += 2*int(self.scale / 10)
                 self.turn = False
         else:
             if self.ball_position[0] + self.ball_radius >= self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.ai_paddle_center - self.paddle_halfwidth and self.ball_position[1] <= self.ai_paddle_center + self.paddle_halfwidth:
