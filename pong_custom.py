@@ -94,7 +94,7 @@ class CustomPongEnv(gym.Env):
         reward = self._get_reward()
         done = self._is_done()
 
-        return self._get_obs(), reward, done
+        return self._get_obs(), reward, done, {}
 
     def reset(self):
         self.ball_position = [int(self.side_wall_length/2), int(self.front_wall_length/2)]
@@ -177,10 +177,10 @@ class CustomPongEnv(gym.Env):
 
     def _get_reward(self):
         if self.ball_position[0] + self.ball_radius >= self.side_wall_length:
-            return -10
+            return -1
         # Check for collision with the paddle
         if self.ball_position[0] + self.ball_radius >= self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_center - self.paddle_halfwidth and self.ball_position[1] <= self.paddle_center + self.paddle_halfwidth:
-            return 5
+            return 0.5
         return 0
 
     def _is_done(self):
@@ -219,7 +219,7 @@ def test_pong_environment(episodes=10):
             # Random Action
             action = env.action_space.sample()
 
-            obs, reward, done = env.step(action)
+            obs, reward, done, _ = env.step(action)
             reward_sum += reward
 
             # Render the game

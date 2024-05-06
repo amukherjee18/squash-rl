@@ -208,20 +208,21 @@ class CustomPongEnv(gym.Env):
         # If we win
         if not self.turn and self.ball_position[0] + self.ball_radius >= self.side_wall_length:
             self.done = True
-            return 50
+            return 1
 
         # If we lose
         elif self.turn and self.ball_position[0] + self.ball_radius >= self.side_wall_length:
             self.done = True
-            return -50
+            return -1
 
         # Collision with our paddle
         if self.turn and self.ball_position[0] + self.ball_radius >= self.side_wall_length - self.paddle_height and self.ball_position[1] >= self.paddle_center - self.paddle_halfwidth and self.ball_position[1] <= self.paddle_center + self.paddle_halfwidth:
-            return 20
+            return 0.5
         
-        # Penalty for distance between our paddel and the ball
-        val = -50*np.abs(self.ball_position[1] - (self.paddle_center + self.paddle_halfwidth)) / self.front_wall_length
-        return val
+        return 0
+        # # Penalty for distance between our paddel and the ball
+        # val = -50*np.abs(self.ball_position[1] - (self.paddle_center + self.paddle_halfwidth)) / self.front_wall_length
+        # return val
 
     def _is_done(self):
         return self.done
