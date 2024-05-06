@@ -20,51 +20,8 @@ import gymnasium as gym
 from gymnasium import spaces
 import torch
 from tqdm import tqdm
-
-
 import ray
 
-def rgb_to_grayscale(rgb_tensor):
-    # Convert RGB tensor to grayscale using weighted average
-    grayscale_tensor = np.dot(rgb_tensor[..., :3], [0.2989, 0.5870, 0.1140])
-
-    return torch.FloatTensor(grayscale_tensor)
-
-
-class PolicyNetwork(nn.Module):
-
-  """
-    Implement the Policy Network.
-
-    Your task is to complete the initialization of the policy network that maps states to action probabilities.
-    This network should consist of several fully connected layers with ReLU activation, followed by a final layer
-    that outputs logits for each action. The forward pass should return a Categorical distribution over actions.
-
-    Instructions:
-    1. Initialize the fully connected layers in the __init__ method.
-    2. Implement the forward pass to return a Categorical distribution given state inputs.
-
-    Hint: The constructor takes 'state_dim' and 'action_dim' as arguments, representing the dimensions
-    of the state space and action space, respectively.
-  """
-  def __init__(self, state_dim, action_dim):
-      super(PolicyNetwork, self).__init__()
-      ##### Code implementation here #####
-      hidden=64
-      self.l1 = nn.Linear(state_dim, hidden)
-      self.l2 = nn.Linear(hidden, hidden)
-      self.l3 = nn.Linear(hidden, hidden)
-      self.output = nn.Linear(hidden, action_dim)
-      ############################
-
-  def forward(self, x):
-      ##### Code implementation here #####
-      layer1 = F.relu(self.l1(x))
-      layer2 = F.relu(self.l2(layer1))
-      layer3 = F.relu(self.l3(layer2))
-      output_logits = self.output(layer3)
-      dist = Categorical(logits=output_logits)
-      return dist
 
 class CustomPongEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -164,7 +121,6 @@ class CustomPongEnv(gym.Env):
         # Draw the paddle
         screen[self.side_wall_length - self.paddle_height:self.side_wall_length, self.paddle_center - self.paddle_halfwidth: self.paddle_center + self.paddle_halfwidth] = [0, 0, 0]
         screen[self.side_wall_length - self.paddle_height + self.paddle_border:self.side_wall_length - self.paddle_border, self.paddle_center - self.paddle_halfwidth + self.paddle_border: self.paddle_center + self.paddle_halfwidth - self.paddle_border] = [0, 117, 231]
-
 
         screen[self.side_wall_length - self.paddle_height:self.side_wall_length, self.ai_paddle_center - self.paddle_halfwidth: self.ai_paddle_center + self.paddle_halfwidth] = [0, 0, 0]
         screen[self.side_wall_length - self.paddle_height + self.ai_paddle_border:self.side_wall_length - self.ai_paddle_border, self.ai_paddle_center - self.paddle_halfwidth + self.ai_paddle_border: self.ai_paddle_center + self.paddle_halfwidth - self.ai_paddle_border] = [2, 209, 254] # [48, 28, 165]
