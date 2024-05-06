@@ -97,7 +97,7 @@ class CustomPongEnv(gym.Env):
         reward = self._get_reward()
         done = self._is_done()
 
-        return self._get_obs(), reward, done
+        return self._get_obs(), reward, done, {}
 
     def reset(self):
 
@@ -259,7 +259,7 @@ def test_pong_environment(episodes=10):
             # Random action
             action = env.action_space.sample()
 
-            obs, reward, done = env.step(action)
+            obs, reward, done, _ = env.step(action)
             reward_sum += reward
 
             # Render the game
