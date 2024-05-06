@@ -125,7 +125,7 @@ class CustomPongEnv(gym.Env):
         self.turn = False # False means ai paddle turn
         self.done = False
 
-        return self._get_obs(), []
+        return self._get_obs()
 
     def render(self, mode='human', close=False):
         
@@ -251,34 +251,61 @@ class CustomPongEnv(gym.Env):
         return obs
 
 def test_pong_environment(episodes=10):
-    
+    print(ray.__version__)
+
+    def env_creator(env_config):
+        return EnvCompatibility(CustomPongEnv())
+
+    # Register the custom environment
+    register_env("Squash", env_creator)
+
+    config = {
+        "env": "Squash",
+        "num_workers": 1,
+        "framework": "torch",
+        "model": {
+            "fcnet_activation": "relu",
+            "fcnet_hiddens": [512, 256, 256, 3],
+            "conv_filters": [
+        [32, [5, 5], 2], 
+        [64, [5, 5], 2], 
+        [128, [5, 5], 2], 
+        [256, [4, 4], 24],
+        [256, [2, 2], 2],
+    ],
+        },
+    }
+
+    trainer = PPO(config=config)
+    # trainer = DQN(config=config)
+
+    # Train for 100 iterations
+    policy_net = trainer.get_policy().model
+    policy_net.load_state_dict(torch.load("ppo_multi_step_21.pth", map_location=torch.device('cpu')))
+
     # Create the environment
     env = CustomPongEnv() 
-    
-    state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
-    action_dim = env.action_space.n
 
-    # policy_net = PolicyNetwork(state_dim, action_dim)
-    # checkpoint = torch.load('ppo_multi_step_301', map_location=torch.device('cpu'))
-    # policy_net.load_state_dict(checkpoint['policy network'])
+    reward_sum = 0
     
     for episode in range(episodes):
+        # breakpoint()
         done = False
-        reward_sum = 0
         
-        obs, _ = env.reset()
+        obs = env.reset()
         while not done:
-            obs = torch.FloatTensor(obs)
-            obs = rgb_to_grayscale(obs).flatten()   
-            
-            # Action according to trained policy
-            # action = policy_net(obs).sample().numpy()
             # Random action
-            action = env.action_space.sample()
+            # action = env.action_space.sample()
 
-            obs, reward, done, _ = env.step(action)
+            # Action according to trained policy
+            obs = torch.FloatTensor(obs).unsqueeze(0)
+            output, _ = policy_net({"obs": obs}, [], None)
+            dist = Categorical(logits=output)
+            action = dist.sample().numpy()
+
+            obs, reward, done, info = env.step(action)
+
             reward_sum += reward
-
             # Render the game
             env.render()
 
