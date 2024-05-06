@@ -173,12 +173,6 @@ class CustomPongEnv(gym.Env):
 
         # Check for scoring
         if self.ball_position[0] + self.ball_radius >= self.side_wall_length:
-            
-            # Reset
-            # self.ball_position = [105, 80]
-            # self.ball_velocity = [int(2*self.scale / 10), int(np.random.choice([-1, 1])*self.scale / 10)]
-
-            # self.ball_velocity = [4, -2 if self.ball_velocity[1] > 0 else 2] 
             self.done = True
 
     def _get_reward(self):
