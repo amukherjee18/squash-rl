@@ -9,7 +9,6 @@ from torch.distributions import Categorical
 
 from ray.rllib.env import EnvContext
 from ray.tune.registry import register_env
-# from multiplayer_squash_v1 import CustomPongEnv
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.algorithms.dqn import DQN
 
