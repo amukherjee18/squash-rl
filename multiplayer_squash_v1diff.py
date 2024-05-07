@@ -57,7 +57,7 @@ class CustomPongEnv(gym.Env):
 
         # State, Action Spaces
         self.action_space = spaces.Discrete(3)  # 0: stay, 1: up, 2: down
-        self.observation_space = spaces.Box(low=0, high=255, shape=(self.side_wall_length, self.front_wall_length, 3), dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.side_wall_length, self.front_wall_length, 4), dtype=np.uint8)
 
         self.done = False
         self.turn = False # False means ai paddle turn
