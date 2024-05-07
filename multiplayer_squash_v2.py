@@ -122,7 +122,7 @@ class CustomPongEnv(gym.Env):
         reward = self._get_reward()
         done = self._is_done()
 
-        return self._get_obs(), reward, done
+        return self._get_obs(), reward, done, {}
 
     def reset(self):
 
