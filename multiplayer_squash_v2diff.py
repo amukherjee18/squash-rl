@@ -57,20 +57,15 @@ class CustomPongEnv(gym.Env):
         super(CustomPongEnv, self).__init__()
 
         # Measurements
-        self.scale = 10
+        self.scale = 20
 
         # Court
         self.front_wall_length = 21 * self.scale
 
-        self.side_wall_length = 16 * self.scale
-        self.front_wall_to_t = int(9 * self.scale)
-        self.box_side_length = int(3 * self.scale)
+        self.side_wall_length = 32 * self.scale
+        self.front_wall_to_t = int(17.85 * self.scale)
+        self.box_side_length = int(5.25 * self.scale)
         self.t_to_back_wall = self.side_wall_length - self.front_wall_to_t
-
-        # self.side_wall_length = 32 * self.scale
-        # self.front_wall_to_t = int(17.85 * self.scale)
-        # self.box_side_length = int(5.25 * self.scale)
-        # self.t_to_back_wall = self.side_wall_length - self.front_wall_to_t
         self.line_width = int(0.2*self.scale)
 
         # Ball
@@ -87,10 +82,10 @@ class CustomPongEnv(gym.Env):
 
         self.ball_radius = int(self.scale / 2)
         self.ball_size = int(self.scale / 2) # For state sent to policy net
-        self.dot_radius = int(self.ball_radius / 5)
+        self.dot_radius = int(self.ball_radius / 10)
 
         self.ball_shadow_radius = self.ball_radius
-        self.dot_shadow_radius = int(self.ball_shadow_radius / 5)
+        self.dot_shadow_radius = int(self.ball_shadow_radius / 10)
 
         # Paddle
         self.paddle_rx = int(self.front_wall_length / 2)
@@ -201,70 +196,44 @@ class CustomPongEnv(gym.Env):
             cv2.imshow("Squash", screen)
             cv2.waitKey(1)
 
-    def _take_action(self, action):
+    def move_towards_T(self, paddle_rx, paddle_ry):
+        # Move Paddle towards T
+        if paddle_rx < int(self.front_wall_length / 2) and paddle_rx + self.paddle_halfwidth < self.front_wall_length:
+            paddle_rx += self.paddle_velocity
+        elif paddle_rx > int(self.front_wall_length / 2) and paddle_rx - self.paddle_halfwidth > 1:
+            paddle_rx -= self.paddle_velocity
+        if paddle_ry < self.front_wall_to_t and paddle_ry < self.side_wall_length:
+            paddle_ry += self.paddle_velocity
+        elif paddle_ry > self.front_wall_to_t and paddle_ry - self.paddle_height > 0:
+            paddle_ry -= self.paddle_velocity
+        return paddle_rx, paddle_ry
 
-        # 0: stay, 1: up, 2: down, 3: left, 4: right, 5: up-left, 6: up-right, 7: down-right, 8: down-left
-        # Yasser Action 
-        # Move Up
-        if action == 1 and self.paddle_ry - self.paddle_height > 1:
-            self.paddle_ry -= self.paddle_velocity
-        # Move Down
-        elif action == 2 and self.paddle_ry  < self.front_wall_length:
-            self.paddle_ry += self.paddle_velocity
-        # Move Left
-        elif action == 3 and self.paddle_rx - self.paddle_halfwidth > 1:
-            self.paddle_rx -= self.paddle_velocity
-        # Move Right
-        elif action == 4 and self.paddle_rx + self.paddle_halfwidth < self.front_wall_length:
-            self.paddle_rx += self.paddle_velocity
-        # Move Up-Left
-        elif action == 5:
-            if self.paddle_ry - self.paddle_height > 1:
-                self.paddle_ry -= self.paddle_velocity
-            elif self.paddle_rx - self.paddle_halfwidth > 1:
-                self.paddle_rx -= self.paddle_velocity
-        # Move Up-Right
-        elif action == 6:
-            if self.paddle_ry - self.paddle_height > 1:
-                self.paddle_ry -= self.paddle_velocity
-            elif self.paddle_rx + self.paddle_halfwidth < self.front_wall_length:
-                self.paddle_rx += self.paddle_velocity
-        # Move Down-Right
-        elif action == 7:
-            if self.paddle_ry  < self.front_wall_length:
-                self.paddle_ry += self.paddle_velocity
-            elif self.paddle_rx + self.paddle_halfwidth < self.front_wall_length:
-                self.paddle_rx += self.paddle_velocity
-        # Move Down-Left
-        elif action == 8:
-            if self.paddle_ry  < self.front_wall_length:
-                self.paddle_ry += self.paddle_velocity
-            elif self.paddle_rx - self.paddle_halfwidth > 1:
-                self.paddle_rx -= self.paddle_velocity
-    
-        # Move bot towards T, if our turn; Move bot toward ball, if its turn
-        if self.turn:
+    def move_towards_ball(self, paddle_rx, paddle_ry):
+        # Move AI Paddle horizontally in direction of ball
+        if self.ball_position[1] < paddle_rx and paddle_rx - self.paddle_halfwidth > 1: #1 fixes some rendering glitch
+            paddle_rx -= self.paddle_velocity
+        elif self.ball_position[1] > paddle_rx and paddle_rx + self.paddle_halfwidth < self.front_wall_length:
+            paddle_rx += self.paddle_velocity
+
+        # Move AI Paddle vertically in direction of ball
+        if self.ball_position[0] < paddle_ry and paddle_ry - self.paddle_height > 1: #1 fixes some rendering glitch
+            paddle_ry -= self.paddle_velocity
+        elif self.ball_position[0] > paddle_ry and paddle_ry  < self.front_wall_length:
+            paddle_ry += self.paddle_velocity
+        return paddle_rx, paddle_ry
+
+    def _take_action(self, action):    
+        if self.turn:            
             # Move AI Paddle towards T
-            if self.ai_paddle_rx < int(self.front_wall_length / 2) and self.ai_paddle_rx + self.paddle_halfwidth < self.front_wall_length:
-                self.ai_paddle_rx += self.paddle_velocity
-            elif self.ai_paddle_rx > int(self.front_wall_length / 2) and self.ai_paddle_rx - self.paddle_halfwidth > 1:
-                self.ai_paddle_rx -= self.paddle_velocity
-            if self.ai_paddle_ry < self.front_wall_to_t and self.ai_paddle_ry < self.side_wall_length:
-                self.ai_paddle_ry += self.paddle_velocity
-            elif self.ai_paddle_ry > self.front_wall_to_t and self.ai_paddle_ry - self.paddle_height > 0:
-                self.ai_paddle_ry -= self.paddle_velocity
+            self.ai_paddle_rx, self.ai_paddle_ry = self.move_towards_T(self.ai_paddle_rx, self.ai_paddle_ry)
+            # Move YasseRL towards ball
+            self.paddle_rx, self.paddle_ry = self.move_towards_ball(self.paddle_rx, self.paddle_ry)
         else:
-            # Move AI Paddle horizontally in direction of ball
-            if self.ball_position[1] < self.ai_paddle_rx and self.ai_paddle_rx - self.paddle_halfwidth > 1: #1 fixes some rendering glitch
-                self.ai_paddle_rx -= self.paddle_velocity
-            elif self.ball_position[1] > self.ai_paddle_rx and self.ai_paddle_rx + self.paddle_halfwidth < self.front_wall_length:
-                self.ai_paddle_rx += self.paddle_velocity
-
-            # Move AI Paddle vertically in direction of ball
-            if self.ball_position[0] < self.ai_paddle_ry and self.ai_paddle_ry - self.paddle_height > 1: #1 fixes some rendering glitch
-                self.ai_paddle_ry -= self.paddle_velocity
-            elif self.ball_position[0] > self.ai_paddle_ry and self.ai_paddle_ry  < self.front_wall_length:
-                self.ai_paddle_ry += self.paddle_velocity
+            # Move AI Paddle towards ball
+            self.ai_paddle_rx, self.ai_paddle_ry = self.move_towards_ball(self.ai_paddle_rx, self.ai_paddle_ry)
+            # Move YasseRL towards T
+            self.paddle_rx, self.paddle_ry = self.move_towards_T(self.paddle_rx, self.paddle_ry)
+            
 
 
     def _update_ball(self, action):
