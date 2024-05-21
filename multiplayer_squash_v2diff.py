@@ -82,10 +82,10 @@ class CustomPongEnv(gym.Env):
 
         self.ball_radius = int(self.scale / 2)
         self.ball_size = int(self.scale / 2) # For state sent to policy net
-        self.dot_radius = int(self.ball_radius / 10)
+        self.dot_radius = int(self.ball_radius / 5)
 
         self.ball_shadow_radius = self.ball_radius
-        self.dot_shadow_radius = int(self.ball_shadow_radius / 10)
+        self.dot_shadow_radius = int(self.ball_shadow_radius / 5)
 
         # Paddle
         self.paddle_rx = int(self.front_wall_length / 2)
@@ -206,20 +206,22 @@ class CustomPongEnv(gym.Env):
             paddle_ry += self.paddle_velocity
         elif paddle_ry > self.front_wall_to_t and paddle_ry - self.paddle_height > 0:
             paddle_ry -= self.paddle_velocity
+            
         return paddle_rx, paddle_ry
 
     def move_towards_ball(self, paddle_rx, paddle_ry):
-        # Move AI Paddle horizontally in direction of ball
+        # Move Paddle horizontally in direction of ball
         if self.ball_position[1] < paddle_rx and paddle_rx - self.paddle_halfwidth > 1: #1 fixes some rendering glitch
             paddle_rx -= self.paddle_velocity
         elif self.ball_position[1] > paddle_rx and paddle_rx + self.paddle_halfwidth < self.front_wall_length:
             paddle_rx += self.paddle_velocity
 
-        # Move AI Paddle vertically in direction of ball
+        # Move Paddle vertically in direction of ball
         if self.ball_position[0] < paddle_ry and paddle_ry - self.paddle_height > 1: #1 fixes some rendering glitch
             paddle_ry -= self.paddle_velocity
         elif self.ball_position[0] > paddle_ry and paddle_ry  < self.front_wall_length:
             paddle_ry += self.paddle_velocity
+
         return paddle_rx, paddle_ry
 
     def _take_action(self, action):    
@@ -233,7 +235,25 @@ class CustomPongEnv(gym.Env):
             self.ai_paddle_rx, self.ai_paddle_ry = self.move_towards_ball(self.ai_paddle_rx, self.ai_paddle_ry)
             # Move YasseRL towards T
             self.paddle_rx, self.paddle_ry = self.move_towards_T(self.paddle_rx, self.paddle_ry)
+
+    def check_paddle_collisions(self, paddle_rx, paddle_ry):
+        # Check for collision with the paddle
+        if self.ball_position[0] + self.ball_radius >= paddle_ry - self.paddle_height and self.ball_position[0] - self.ball_radius <= paddle_ry and \
+            self.ball_position[1] >= paddle_rx - self.paddle_halfwidth and self.ball_position[1] <= paddle_rx + self.paddle_halfwidth:
             
+            # vx will determine straight/crosscourt
+            self.ball_vx = 0
+
+            # vy will determine towards/away from front wall
+            self.ball_vy = -1.2*self.ball_vy
+
+            # vz will determine up/down on ball
+            self.ball_vz = -self.ball_vz
+            # self.ball_vz = 0
+            
+            self.to_be_hit = False
+
+            self.turn = not self.turn
 
 
     def _update_ball(self, action):
@@ -262,29 +282,32 @@ class CustomPongEnv(gym.Env):
         if self.ball_position[1] - self.ball_radius <= 0 or self.ball_position[1] + self.ball_radius >= self.front_wall_length:
             self.ball_vx = -self.ball_vx
 
+        
+        # Check for collisions with paddles
         if self.turn:
-            # Check for collision with the paddle
-            if self.ball_position[0] + self.ball_radius >= self.paddle_ry - self.paddle_height and self.ball_position[0] - self.ball_radius <= self.paddle_ry and \
-                self.ball_position[1] >= self.paddle_rx - self.paddle_halfwidth and self.ball_position[1] <= self.paddle_rx + self.paddle_halfwidth:
-                self.ball_vy = -self.ball_vy
-                self.ball_vz = -self.ball_vz
-                self.to_be_hit = False
-
-
-                # if action == 1: # (paddle moving left)
-                #     self.ball_vx -= 2*int(self.scale / 10)
-                # elif action == 2: # (paddle moving right)
-                #     self.ball_vx += 2*int(self.scale / 10)
-                self.turn = False
+            self.check_paddle_collisions(self.paddle_rx, self.paddle_ry)
+            
         else:
-            if self.ball_position[0] + self.ball_radius >= self.ai_paddle_ry - self.paddle_height and self.ball_position[0] - self.ball_radius <= self.ai_paddle_ry and \
-                self.ball_position[1] >= self.ai_paddle_rx - self.paddle_halfwidth and self.ball_position[1] <= self.ai_paddle_rx + self.paddle_halfwidth:
-                # breakpoint()
-                self.ball_vy = -self.ball_vy
-                self.ball_vz = -self.ball_vz
-                self.to_be_hit = False
+            self.check_paddle_collisions(self.ai_paddle_rx, self.ai_paddle_ry)
+            
+        
+            
 
-                self.turn = True
+
+        #         # if action == 1: # (paddle moving left)
+        #         #     self.ball_vx -= 2*int(self.scale / 10)
+        #         # elif action == 2: # (paddle moving right)
+        #         #     self.ball_vx += 2*int(self.scale / 10)
+        #         self.turn = False
+        # else:
+        #     if self.ball_position[0] + self.ball_radius >= self.ai_paddle_ry - self.paddle_height and self.ball_position[0] - self.ball_radius <= self.ai_paddle_ry and \
+        #         self.ball_position[1] >= self.ai_paddle_rx - self.paddle_halfwidth and self.ball_position[1] <= self.ai_paddle_rx + self.paddle_halfwidth:
+        #         # breakpoint()
+        #         self.ball_vy = -self.ball_vy
+        #         self.ball_vz = -self.ball_vz
+        #         self.to_be_hit = False
+
+        #         self.turn = True
 
         # Check for scoring
         if self.bounce_count >= 2 and self.to_be_hit:
@@ -322,7 +345,7 @@ class CustomPongEnv(gym.Env):
         obs = np.zeros((self.side_wall_length, self.front_wall_length, 4), dtype=np.uint8)
         
         # Ball
-        obs[self.ball_position[0]-self.ball_shadow_radius:self.ball_position[0]+self.ball_shadow_radius, self.ball_position[1]-self.ball_shadow_radius:self.ball_position[1]+self.ball_shadow_radius] = 255
+        obs[int(self.ball_position[0])-self.ball_shadow_radius:int(self.ball_position[0])+self.ball_shadow_radius, int(self.ball_position[1])-self.ball_shadow_radius:int(self.ball_position[1])+self.ball_shadow_radius] = 255
         
         # Yasser Paddle
         obs[self.side_wall_length - self.paddle_height - 1:self.side_wall_length - self.paddle_height + 1, self.paddle_rx - self.paddle_halfwidth:self.paddle_rx+self.paddle_halfwidth] = 255
